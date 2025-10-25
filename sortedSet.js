@@ -1,28 +1,34 @@
 const client = require('./client');
-async function sortedSetInit(){
-    try{
-        await client.del('scores');
-        await client.zadd('scores', 100, 'Tanish', 130, 'Sharad', 90, 'Priyanshu');
-        const allScores = await client.zrange('scores', 0, -1, 'WITHSCORES')
-        console.log('All Score', allScores);
 
-        const res1 = await client.zadd('racer_Scores', {
-            score:10, value: 'Lokesh'
-        });
-        console.log("res1:", res1);
+async function sortedSetInit() {
+  try {
+    await client.del('scores');
 
-        const res2 = await client.zadd('racer_scores',{
-            score:50, value:'Thor'
-        });
-        console.log("res2:",res2);
-    }
-    catch(err){
-        console.log("error:",err);
-    }
-    finally{
-        client.quit();
-    }
+    // Add multiple members using legacy-style arguments
+    await client.zadd('scores', [
+      { score: 100, value: 'Tanish' },
+      { score: 130, value: 'Sharad' },
+      { score: 90, value: 'Priyanshu' }
+    ]);
 
+    // Get all members with scores
+    const allScores = await client.zRangeWithScores('scores', 0, -1);
+    console.log('All Scores:', allScores);
+
+    // Add new members
+    const res1 = await client.zadd('scores', [{ score: 10, value: 'Lokesh' }]);
+    console.log('res1:', res1);
+
+    const res2 = await client.zadd('scores', [{ score: 50, value: 'Thor' }]);
+    console.log('res2:', res2);
+
+    const updatedScores = await client.zRangeWithScores('scores', 0, -1);
+    console.log('Updated Scores:', updatedScores);
+  } catch (err) {
+    console.error('Error:', err);
+  } finally {
+    await client.quit();
+  }
 }
 
 sortedSetInit();
